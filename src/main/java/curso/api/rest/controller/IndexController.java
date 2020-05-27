@@ -6,6 +6,7 @@ import java.util.Optional;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -73,7 +74,7 @@ public class IndexController {
 	/*Vamos supor que o carregamento de usuário seja um processo lento
 	 * e queremos controlar ele com cache para agilizar o processo*/
 	@GetMapping(value = "/", produces = "application/json")
-	@Cacheable("cacheusuarios")
+	@CachePut("cacheusuarios")
 	public ResponseEntity<List<Usuario>> usuario () throws InterruptedException{
 		
 		List<Usuario> list = (List<Usuario>) usuarioRepository.findAll();
@@ -83,6 +84,15 @@ public class IndexController {
 		return new ResponseEntity<List<Usuario>>(list, HttpStatus.OK);
 	}
 	
+	/*END-POINT consulta de usuários por nome*/
+	@GetMapping(value = "/usuarioPorNome/{nome}", produces = "application/json")
+	@CachePut("cacheusuarios")
+	public ResponseEntity<List<Usuario>> usuarioPorNome (@PathVariable("nome") String nome) throws InterruptedException{
+		
+		List<Usuario> list = (List<Usuario>) usuarioRepository.findByNomeContainingIgnoreCase(nome);
+				
+		return new ResponseEntity<List<Usuario>>(list, HttpStatus.OK);
+	}	
 	
 	@PostMapping(value = "/", produces = "application/json")
 	public ResponseEntity<Usuario> cadastrar(@RequestBody @Valid Usuario usuario) {
